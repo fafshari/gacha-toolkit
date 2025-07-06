@@ -1,5 +1,5 @@
 import Image from "next/image";
-import React from "react";
+import React, { useState } from "react";
 import { Doll } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
@@ -51,7 +51,28 @@ export function DollCard({
     return ringColor ? `${ringColor} ${ringThickness}` : "";
   };
 
-  // Create tooltip text with ability information
+  // Helper function to format ability descriptions
+  const formatAbilityDetails = () => {
+    const details = {
+      dispel: {
+        has: doll.dispel || false,
+        // Dispel doesn't have a type property in the interface, so we infer from isAoE
+        type: isAoE ? "AoE" : "Single Target/Self",
+        descriptions: doll.abilities?.dispel?.description || [],
+      },
+      cleanse: {
+        has: doll.cleanse || false,
+        type:
+          doll.abilities?.cleanse?.type ||
+          (isAoE ? "AoE" : "Single Target/Self"),
+        descriptions: doll.abilities?.cleanse?.description || [],
+      },
+    };
+
+    return details;
+  };
+
+  // Create tooltip text with basic ability information
   const getAbilityTooltip = () => {
     const parts = [];
 
@@ -73,6 +94,27 @@ export function DollCard({
   };
 
   const ringClasses = getRingClasses();
+  const abilityDetails = formatAbilityDetails();
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  // Reference for the card element
+  const cardRef = React.useRef<HTMLDivElement>(null);
+
+  // Handle click outside to close tooltip
+  React.useEffect(() => {
+    if (!showTooltip) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (cardRef.current && !cardRef.current.contains(event.target as Node)) {
+        setShowTooltip(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showTooltip]);
 
   return (
     <div className="flex flex-col items-center w-16 [&>*+*]:mt-2">
@@ -85,46 +127,105 @@ export function DollCard({
           {doll.name}
         </span>
       )}
-      <div
-        className={cn(
-          "relative w-16 h-16 flex items-center justify-center rounded-md group",
-          ringClasses
-        )}
-        title={getAbilityTooltip()}
-      >
-        <Image
-          src={doll.image}
-          alt={doll.name}
-          className="object-contain max-w-[56px] max-h-[56px]"
-          width={128}
-          height={128}
-        />
 
-        {/* Indicator icons for cleanse/dispel in corner if applicable */}
-        {(doll.dispel || doll.cleanse) && (
-          <div className="absolute bottom-0 right-0 flex gap-1">
-            {doll.dispel && (
-              <div
-                className={cn(
-                  // Base style
-                  "bg-blue-500 rounded-full w-3 h-3",
-                  // Add white ring for AoE abilities
-                  isAoE && "ring-1 ring-white"
-                )}
-                title={isAoE ? "Dispel (AoE)" : "Dispel"}
-              />
-            )}
-            {doll.cleanse && (
-              <div
-                className={cn(
-                  // Base style
-                  "bg-green-500 rounded-full w-3 h-3",
-                  // Add white ring for AoE abilities
-                  isAoE && "ring-1 ring-white"
-                )}
-                title={isAoE ? "Cleanse (AoE)" : "Cleanse"}
-              />
-            )}
+      <div className="relative" ref={cardRef}>
+        <div
+          className={cn(
+            "relative w-16 h-16 flex items-center justify-center rounded-md group cursor-pointer border-0 bg-transparent p-0",
+            ringClasses
+          )}
+          onMouseDown={() => setShowTooltip(!showTooltip)}
+        >
+          <Image
+            src={doll.image}
+            alt={doll.name}
+            className="object-contain max-w-[56px] max-h-[56px]"
+            width={128}
+            height={128}
+          />
+
+          {/* Indicator icons for cleanse/dispel in corner if applicable */}
+          {(doll.dispel || doll.cleanse) && (
+            <div className="absolute bottom-0 right-0 flex gap-1">
+              {doll.dispel && (
+                <div
+                  className={cn(
+                    // Base style
+                    "bg-blue-500 rounded-full w-3 h-3",
+                    // Add white ring for AoE abilities
+                    isAoE && "ring-1 ring-white"
+                  )}
+                />
+              )}
+              {doll.cleanse && (
+                <div
+                  className={cn(
+                    // Base style
+                    "bg-green-500 rounded-full w-3 h-3",
+                    // Add white ring for AoE abilities
+                    isAoE && "ring-1 ring-white"
+                  )}
+                />
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Custom tooltip/popover */}
+        {showTooltip && (
+          <div
+            className="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50 w-80 p-0"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 flex-shrink-0">
+                  <Image
+                    src={doll.image}
+                    alt={doll.name}
+                    width={48}
+                    height={48}
+                    className="object-contain w-full h-full"
+                  />
+                </div>
+                <h3 className="text-lg font-bold">{doll.name}</h3>
+              </div>
+
+              {abilityDetails.dispel.has && (
+                <div className="mb-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    <h4 className="font-semibold">
+                      Dispel ({abilityDetails.dispel.type})
+                    </h4>
+                  </div>
+                  <div className="text-sm pl-5 list-disc text-start [&>*+*]:mt-1">
+                    {abilityDetails.dispel.descriptions.map((desc, i) => (
+                      <p key={`dispel-${i}`}>{desc}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {abilityDetails.cleanse.has && (
+                <div className="mb-2">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <h4 className="font-semibold">
+                      Cleanse ({abilityDetails.cleanse.type || "Unknown"})
+                    </h4>
+                  </div>
+                  <div className="text-sm pl-5 list-disc text-start [&>*+*]:mt-1">
+                    {abilityDetails.cleanse.descriptions.map((desc, i) => (
+                      <p key={`cleanse-${i}`}>{desc}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Arrow pointing to the card */}
+              <div className="absolute left-1/2 bottom-0 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-3 h-3 bg-white dark:bg-gray-800 border-b border-r border-gray-200 dark:border-gray-700"></div>
+            </div>
           </div>
         )}
       </div>
