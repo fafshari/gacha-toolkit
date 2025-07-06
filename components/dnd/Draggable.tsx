@@ -14,6 +14,7 @@ export function Draggable(props: DraggableProps) {
   const style = {
     // Outputs `translate3d(x, y, 0)`
     transform: CSS.Translate.toString(transform),
+    touchAction: "none",
   };
 
   return (

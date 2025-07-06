@@ -332,7 +332,7 @@ export default function DragAndDrop() {
                   id={containerId}
                   hasItems={hasItems}
                 >
-                  <div className="p-4 border border-dashed rounded min-h-20 w-[96px]">
+                  <div className="p-2 border border-dashed rounded min-h-20 w-[82px]">
                     {hasItems ? (
                       <div className="flex flex-wrap gap-2">
                         {containerItems.map((doll) => (
@@ -474,23 +474,25 @@ export default function DragAndDrop() {
             </div>
           </div>
         </div>
-
-        {/* Unassigned items area */}
-        <div className="p-4 border border-dashed  border-gray rounded mb-4">
-          <h3 className="font-bold mb-2">Unassigned Dolls</h3>
-          <div className="flex flex-wrap gap-4">
-            {getUnassignedItems().map((doll) => (
-              <Draggable key={doll.id} id={doll.id}>
-                <DollCard doll={doll} />
-              </Draggable>
-            ))}
+        <div className="flex flex-col lg:flex-row gap-4">
+          {/* Unassigned items area */}
+          <div className="lg:basis-2/5 p-4 border border-dashed  border-gray rounded mb-4">
+            <h3 className="font-bold mb-2">Unassigned Dolls</h3>
+            <div className="flex flex-wrap gap-4">
+              {getUnassignedItems().map((doll) => (
+                <Draggable key={doll.id} id={doll.id}>
+                  <DollCard doll={doll} />
+                </Draggable>
+              ))}
+            </div>
+          </div>
+          <div>
+            {/* The three separate grids with special slots */}
+            {renderGrid(gridOne, "team-1", "special-1")}
+            {renderGrid(gridTwo, "team-2", "special-2")}
+            {renderGrid(gridThree, "team-3", "special-3")}
           </div>
         </div>
-
-        {/* The three separate grids with special slots */}
-        {renderGrid(gridOne, "team-1", "special-1")}
-        {renderGrid(gridTwo, "team-2", "special-2")}
-        {renderGrid(gridThree, "team-3", "special-3")}
       </div>
     </DndContext>
   );

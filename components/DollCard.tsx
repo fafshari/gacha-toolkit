@@ -96,17 +96,7 @@ export function DollCard({
   }, [showTooltip]);
 
   return (
-    <div className="flex flex-col items-center w-16 [&>*+*]:mt-2">
-      {/* Conditionally render the name if showName is true */}
-      {showName !== false && (
-        <span
-          className="text-center font-medium text-xs w-full truncate"
-          title={doll.name}
-        >
-          {doll.name}
-        </span>
-      )}
-
+    <div className="flex flex-col items-center w-16">
       <div className="relative" ref={cardRef}>
         <div
           className={cn(
@@ -118,14 +108,26 @@ export function DollCard({
           <Image
             src={doll.image}
             alt={doll.name}
-            className="object-contain max-w-[56px] max-h-[56px]"
+            className="object-contain max-w-[64px] max-h-[64px] rounded-md"
             width={128}
             height={128}
           />
 
-          {/* Indicator icons for cleanse/dispel in corner if applicable */}
+          {/* Name overlapping the image at bottom */}
+          {showName !== false && (
+            <div className="absolute bottom-0 left-0 right-0 text-shadow-zinc-950 text-shadow-md truncate">
+              <span
+                className="text-center font-medium text-xs w-full text-white"
+                title={doll.name}
+              >
+                {doll.name}
+              </span>
+            </div>
+          )}
+
+          {/* Moved indicator icons for cleanse/dispel to top right */}
           {(doll.dispel || doll.cleanse) && (
-            <div className="absolute bottom-0 right-0 flex gap-1">
+            <div className="absolute top-0 right-0 flex gap-1 p-0.5">
               {doll.dispel && (
                 <div
                   className={cn(
