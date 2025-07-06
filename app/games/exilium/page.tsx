@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     title: "Gunsmoke Exilium Team Planner",
     description:
       "Plan your perfect Gunsmoke Exilium team composition with our interactive tool",
-    images: ["/exillium/dolls/groza.png"],
+    images: ["/exillium/gunsmoke.png"],
   },
 };
 
