@@ -10,7 +10,6 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -84,11 +83,11 @@ TeamNameInput.displayName = "TeamNameInput";
 // Storage keys
 const STORAGE_KEY_CONTAINERS = "exillium-dnd-containers";
 const STORAGE_KEY_SPECIAL_SLOTS = "exillium-dnd-special-slots";
-const STORAGE_KEY_TEAM_NAMES = "exillium-dnd-team-names";  // Helper function to get stored data with fallback
+const STORAGE_KEY_TEAM_NAMES = "exillium-dnd-team-names"; // Helper function to get stored data with fallback
 const getStoredData = <T,>(key: string, fallback: T): T => {
   // Ensure we're in browser environment and not in SSR
   if (typeof window === "undefined") return fallback;
-  
+
   try {
     const storedData = localStorage.getItem(key);
     return storedData ? JSON.parse(storedData) : fallback;
@@ -126,17 +125,16 @@ export default function DragAndDrop() {
   };
 
   // Initialize with default values first to avoid hydration mismatch
-  const [itemContainers, setItemContainers] = useState<
-    Record<string, UniqueIdentifier | null>
-  >(defaultContainers);
+  const [itemContainers, setItemContainers] =
+    useState<Record<string, UniqueIdentifier | null>>(defaultContainers);
 
   // Track which dolls are selected for the special slots
-  const [specialSlotSelections, setSpecialSlotSelections] = useState<
-    Record<string, string | null>
-  >(defaultSpecialSlots);
+  const [specialSlotSelections, setSpecialSlotSelections] =
+    useState<Record<string, string | null>>(defaultSpecialSlots);
 
   // Track the team names
-  const [teamNames, setTeamNames] = useState<Record<string, string>>(defaultTeamNames);
+  const [teamNames, setTeamNames] =
+    useState<Record<string, string>>(defaultTeamNames);
 
   // Once component has mounted on client side, load values from localStorage
   const [isClient, setIsClient] = useState(false);
@@ -144,13 +142,22 @@ export default function DragAndDrop() {
   React.useEffect(() => {
     // Mark as client-side after first render
     setIsClient(true);
-    
+
     // Load saved data from localStorage
     try {
-      const storedContainers = getStoredData(STORAGE_KEY_CONTAINERS, defaultContainers);
-      const storedSpecialSlots = getStoredData(STORAGE_KEY_SPECIAL_SLOTS, defaultSpecialSlots);
-      const storedTeamNames = getStoredData(STORAGE_KEY_TEAM_NAMES, defaultTeamNames);
-      
+      const storedContainers = getStoredData(
+        STORAGE_KEY_CONTAINERS,
+        defaultContainers
+      );
+      const storedSpecialSlots = getStoredData(
+        STORAGE_KEY_SPECIAL_SLOTS,
+        defaultSpecialSlots
+      );
+      const storedTeamNames = getStoredData(
+        STORAGE_KEY_TEAM_NAMES,
+        defaultTeamNames
+      );
+
       setItemContainers(storedContainers);
       setSpecialSlotSelections(storedSpecialSlots);
       setTeamNames(storedTeamNames);
@@ -162,7 +169,7 @@ export default function DragAndDrop() {
   // Save data to localStorage
   const saveToLocalStorage = React.useCallback((key: string, data: any) => {
     if (typeof window === "undefined") return; // SSR check
-    
+
     try {
       localStorage.setItem(key, JSON.stringify(data));
     } catch (error) {
@@ -177,10 +184,10 @@ export default function DragAndDrop() {
         ...prev,
         [slotId]: dollId,
       };
-      
+
       // Save to localStorage
       saveToLocalStorage(STORAGE_KEY_SPECIAL_SLOTS, newState);
-      
+
       return newState;
     });
   };
@@ -193,10 +200,10 @@ export default function DragAndDrop() {
           ...prev,
           [teamId]: newName,
         };
-        
+
         // Save to localStorage
         saveToLocalStorage(STORAGE_KEY_TEAM_NAMES, newState);
-        
+
         return newState;
       });
     },
@@ -213,10 +220,10 @@ export default function DragAndDrop() {
           ...prev,
           [active.id]: null,
         };
-        
+
         // Save to localStorage
         saveToLocalStorage(STORAGE_KEY_CONTAINERS, newState);
-        
+
         return newState;
       });
       return;
@@ -233,10 +240,10 @@ export default function DragAndDrop() {
         ...prev,
         [active.id]: over.id,
       };
-      
+
       // Save to localStorage
       saveToLocalStorage(STORAGE_KEY_CONTAINERS, newState);
-      
+
       return newState;
     });
   }
@@ -262,7 +269,7 @@ export default function DragAndDrop() {
     };
     setSpecialSlotSelections(defaultSpecialSlots);
     saveToLocalStorage(STORAGE_KEY_SPECIAL_SLOTS, defaultSpecialSlots);
-    
+
     // Reset team names to defaults
     const defaultTeamNames = {
       "team-1": "Team 1",
