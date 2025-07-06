@@ -81,59 +81,126 @@ const TeamNameInput = memo(
 
 TeamNameInput.displayName = "TeamNameInput";
 
-export default function DragAndDrop() {
-  // Track which items are in which containers
-  const [itemContainers, setItemContainers] = useState<
-    Record<string, UniqueIdentifier | null>
-  >(
-    // Initialize all dolls as unassigned
-    EXILLIUM_DOLLS.reduce(
-      (acc, doll) => ({
-        ...acc,
-        [doll.id]: null,
-      }),
-      {}
-    )
-  );
+// Storage keys
+const STORAGE_KEY_CONTAINERS = "exillium-dnd-containers";
+const STORAGE_KEY_SPECIAL_SLOTS = "exillium-dnd-special-slots";
+const STORAGE_KEY_TEAM_NAMES = "exillium-dnd-team-names";  // Helper function to get stored data with fallback
+const getStoredData = <T,>(key: string, fallback: T): T => {
+  // Ensure we're in browser environment and not in SSR
+  if (typeof window === "undefined") return fallback;
+  
+  try {
+    const storedData = localStorage.getItem(key);
+    return storedData ? JSON.parse(storedData) : fallback;
+  } catch (error) {
+    console.error(`Error retrieving ${key} from localStorage:`, error);
+    return fallback;
+  }
+};
 
+export default function DragAndDrop() {
   // Define three separate sets of containers
   const gridOne = [1, 2, 3, 4];
   const gridTwo = [6, 7, 8, 9];
   const gridThree = [11, 12, 13, 14];
 
-  // Track which dolls are selected for the special slots
-  const [specialSlotSelections, setSpecialSlotSelections] = useState<
-    Record<string, string | null>
-  >({
+  // Create default values
+  const defaultContainers = EXILLIUM_DOLLS.reduce(
+    (acc, doll) => ({
+      ...acc,
+      [doll.id]: null,
+    }),
+    {}
+  );
+
+  const defaultSpecialSlots = {
     "special-1": null,
     "special-2": null,
     "special-3": null,
-  });
+  };
 
-  // Track the team names
-  const [teamNames, setTeamNames] = useState<Record<string, string>>({
+  const defaultTeamNames = {
     "team-1": "Team 1",
     "team-2": "Team 2",
     "team-3": "Team 3",
-  });
+  };
+
+  // Initialize with default values first to avoid hydration mismatch
+  const [itemContainers, setItemContainers] = useState<
+    Record<string, UniqueIdentifier | null>
+  >(defaultContainers);
+
+  // Track which dolls are selected for the special slots
+  const [specialSlotSelections, setSpecialSlotSelections] = useState<
+    Record<string, string | null>
+  >(defaultSpecialSlots);
+
+  // Track the team names
+  const [teamNames, setTeamNames] = useState<Record<string, string>>(defaultTeamNames);
+
+  // Once component has mounted on client side, load values from localStorage
+  const [isClient, setIsClient] = useState(false);
+
+  React.useEffect(() => {
+    // Mark as client-side after first render
+    setIsClient(true);
+    
+    // Load saved data from localStorage
+    try {
+      const storedContainers = getStoredData(STORAGE_KEY_CONTAINERS, defaultContainers);
+      const storedSpecialSlots = getStoredData(STORAGE_KEY_SPECIAL_SLOTS, defaultSpecialSlots);
+      const storedTeamNames = getStoredData(STORAGE_KEY_TEAM_NAMES, defaultTeamNames);
+      
+      setItemContainers(storedContainers);
+      setSpecialSlotSelections(storedSpecialSlots);
+      setTeamNames(storedTeamNames);
+    } catch (error) {
+      console.error("Error loading data from localStorage:", error);
+    }
+  }, []);
+
+  // Save data to localStorage
+  const saveToLocalStorage = React.useCallback((key: string, data: any) => {
+    if (typeof window === "undefined") return; // SSR check
+    
+    try {
+      localStorage.setItem(key, JSON.stringify(data));
+    } catch (error) {
+      console.error(`Error saving to localStorage (${key}):`, error);
+    }
+  }, []);
 
   // Handle change in dropdown selection for special slots
   const handleSpecialSlotChange = (slotId: string, dollId: string | null) => {
-    setSpecialSlotSelections((prev) => ({
-      ...prev,
-      [slotId]: dollId,
-    }));
+    setSpecialSlotSelections((prev) => {
+      const newState = {
+        ...prev,
+        [slotId]: dollId,
+      };
+      
+      // Save to localStorage
+      saveToLocalStorage(STORAGE_KEY_SPECIAL_SLOTS, newState);
+      
+      return newState;
+    });
   };
 
   // Handle team name changes - only called when input loses focus
   const handleTeamNameChange = React.useCallback(
     (teamId: string, newName: string) => {
-      setTeamNames((prev) => ({
-        ...prev,
-        [teamId]: newName,
-      }));
+      setTeamNames((prev) => {
+        const newState = {
+          ...prev,
+          [teamId]: newName,
+        };
+        
+        // Save to localStorage
+        saveToLocalStorage(STORAGE_KEY_TEAM_NAMES, newState);
+        
+        return newState;
+      });
     },
-    []
+    [saveToLocalStorage]
   );
 
   function handleDragEnd(event: DragEndEvent) {
@@ -141,10 +208,17 @@ export default function DragAndDrop() {
 
     if (!over) {
       // If dropped outside a droppable area, return to unassigned state
-      setItemContainers((prev) => ({
-        ...prev,
-        [active.id]: null,
-      }));
+      setItemContainers((prev) => {
+        const newState = {
+          ...prev,
+          [active.id]: null,
+        };
+        
+        // Save to localStorage
+        saveToLocalStorage(STORAGE_KEY_CONTAINERS, newState);
+        
+        return newState;
+      });
       return;
     }
 
@@ -154,30 +228,49 @@ export default function DragAndDrop() {
     }
 
     // Regular slot handling
-    setItemContainers((prev) => ({
-      ...prev,
-      [active.id]: over.id,
-    }));
+    setItemContainers((prev) => {
+      const newState = {
+        ...prev,
+        [active.id]: over.id,
+      };
+      
+      // Save to localStorage
+      saveToLocalStorage(STORAGE_KEY_CONTAINERS, newState);
+      
+      return newState;
+    });
   }
 
   // Function to reset all items to unassigned state
   const handleReset = () => {
-    setItemContainers(
-      EXILLIUM_DOLLS.reduce(
-        (acc, doll) => ({
-          ...acc,
-          [doll.id]: null,
-        }),
-        {}
-      )
+    // Reset item containers
+    const defaultContainers = EXILLIUM_DOLLS.reduce(
+      (acc, doll) => ({
+        ...acc,
+        [doll.id]: null,
+      }),
+      {}
     );
+    setItemContainers(defaultContainers);
+    saveToLocalStorage(STORAGE_KEY_CONTAINERS, defaultContainers);
 
-    // Also reset special slot selections
-    setSpecialSlotSelections({
+    // Reset special slot selections
+    const defaultSpecialSlots = {
       "special-1": null,
       "special-2": null,
       "special-3": null,
-    });
+    };
+    setSpecialSlotSelections(defaultSpecialSlots);
+    saveToLocalStorage(STORAGE_KEY_SPECIAL_SLOTS, defaultSpecialSlots);
+    
+    // Reset team names to defaults
+    const defaultTeamNames = {
+      "team-1": "Team 1",
+      "team-2": "Team 2",
+      "team-3": "Team 3",
+    };
+    setTeamNames(defaultTeamNames);
+    saveToLocalStorage(STORAGE_KEY_TEAM_NAMES, defaultTeamNames);
   };
 
   // Get all items assigned to a specific container
@@ -296,6 +389,20 @@ export default function DragAndDrop() {
       getContainerItems,
     ]
   );
+
+  // Show minimal content until client-side hydration is complete to avoid hydration mismatch
+  if (!isClient) {
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="flex justify-between items-center mb-2">
+          <h2 className="text-xl font-bold">Exillium Dolls Drag & Drop</h2>
+        </div>
+        <div className="p-4 border border-gray rounded mb-4 text-center">
+          Loading...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <DndContext onDragEnd={handleDragEnd}>
