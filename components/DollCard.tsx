@@ -72,27 +72,6 @@ export function DollCard({
     return details;
   };
 
-  // Create tooltip text with basic ability information
-  const getAbilityTooltip = () => {
-    const parts = [];
-
-    // Add doll name
-    parts.push(doll.name);
-
-    // Add cleanse info if available
-    if (doll.cleanse && doll.abilities?.cleanse) {
-      const type = doll.abilities.cleanse.type || "Unspecified";
-      parts.push(`Cleanse: ${type}`);
-    }
-
-    // Add dispel info if available
-    if (doll.dispel) {
-      parts.push("Dispel");
-    }
-
-    return parts.join(" - ");
-  };
-
   const ringClasses = getRingClasses();
   const abilityDetails = formatAbilityDetails();
   const [showTooltip, setShowTooltip] = useState(false);
