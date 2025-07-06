@@ -167,7 +167,7 @@ export default function DragAndDrop() {
   }, []);
 
   // Save data to localStorage
-  const saveToLocalStorage = React.useCallback((key: string, data: any) => {
+  const saveToLocalStorage = React.useCallback((key: string, data: unknown) => {
     if (typeof window === "undefined") return; // SSR check
 
     try {
@@ -307,12 +307,7 @@ export default function DragAndDrop() {
 
   // Helper function to render a grid of droppable containers
   const renderGrid = React.useCallback(
-    (
-      containers: number[],
-      teamId: string,
-      specialSlotId: string,
-      gridIndex: number
-    ) => {
+    (containers: number[], teamId: string, specialSlotId: string) => {
       const specialSlotDoll = getSpecialSlotDoll(specialSlotId);
       const teamName = teamNames[teamId];
 
@@ -493,9 +488,9 @@ export default function DragAndDrop() {
         </div>
 
         {/* The three separate grids with special slots */}
-        {renderGrid(gridOne, "team-1", "special-1", 1)}
-        {renderGrid(gridTwo, "team-2", "special-2", 2)}
-        {renderGrid(gridThree, "team-3", "special-3", 3)}
+        {renderGrid(gridOne, "team-1", "special-1")}
+        {renderGrid(gridTwo, "team-2", "special-2")}
+        {renderGrid(gridThree, "team-3", "special-3")}
       </div>
     </DndContext>
   );
