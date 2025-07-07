@@ -87,6 +87,61 @@ const TeamNameInput = memo(
 
 TeamNameInput.displayName = "TeamNameInput";
 
+// High-performance textarea component with local state that only syncs on blur
+const TeamNotesTextarea = memo(
+  ({
+    teamId,
+    initialValue,
+    onSave,
+  }: {
+    teamId: string;
+    initialValue: string;
+    onSave: (teamId: string, value: string) => void;
+  }) => {
+    // Local state for the textarea value to avoid re-renders in the parent
+    const [localValue, setLocalValue] = useState(initialValue);
+
+    // Sync local value with prop if it changes externally
+    React.useEffect(() => {
+      setLocalValue(initialValue);
+    }, [initialValue]);
+
+    // Handle textarea changes locally without propagating to parent
+    const handleChange = useCallback(
+      (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setLocalValue(e.target.value);
+      },
+      []
+    );
+
+    // Only update parent state when the field loses focus
+    const handleBlur = useCallback(() => {
+      if (localValue !== initialValue) {
+        onSave(teamId, localValue);
+      }
+    }, [teamId, localValue, initialValue, onSave]);
+
+    return (
+      <Textarea
+        placeholder="Add your rotation strategy and notes here..."
+        className="min-h-[100px] font-mono"
+        value={localValue}
+        onChange={handleChange}
+        onBlur={handleBlur}
+      />
+    );
+  },
+  // Custom equality function to prevent unnecessary re-renders
+  (prevProps, nextProps) => {
+    return (
+      prevProps.teamId === nextProps.teamId &&
+      prevProps.initialValue === nextProps.initialValue
+    );
+  }
+);
+
+TeamNotesTextarea.displayName = "TeamNotesTextarea";
+
 // Storage keys
 const STORAGE_KEY_CONTAINERS = "exillium-dnd-containers";
 const STORAGE_KEY_SPECIAL_SLOTS = "exillium-dnd-special-slots";
@@ -450,13 +505,10 @@ export default function DragAndDrop() {
                   Rotation Notes
                 </AccordionTrigger>
                 <AccordionContent>
-                  <Textarea
-                    placeholder="Add your rotation strategy and notes here..."
-                    className="min-h-[100px]"
-                    value={teamNote}
-                    onChange={(e) =>
-                      handleTeamNotesChange(teamId, e.target.value)
-                    }
+                  <TeamNotesTextarea
+                    teamId={teamId}
+                    initialValue={teamNote}
+                    onSave={handleTeamNotesChange}
                   />
                 </AccordionContent>
               </AccordionItem>
