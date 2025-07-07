@@ -14,6 +14,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 // High-performance input component with local state that only syncs on blur
 const TeamNameInput = memo(
@@ -83,7 +90,10 @@ TeamNameInput.displayName = "TeamNameInput";
 // Storage keys
 const STORAGE_KEY_CONTAINERS = "exillium-dnd-containers";
 const STORAGE_KEY_SPECIAL_SLOTS = "exillium-dnd-special-slots";
-const STORAGE_KEY_TEAM_NAMES = "exillium-dnd-team-names"; // Helper function to get stored data with fallback
+const STORAGE_KEY_TEAM_NAMES = "exillium-dnd-team-names";
+const STORAGE_KEY_TEAM_NOTES = "exillium-dnd-team-notes"; // New key for team notes
+
+// Helper function to get stored data with fallback
 const getStoredData = <T,>(key: string, fallback: T): T => {
   // Ensure we're in browser environment and not in SSR
   if (typeof window === "undefined") return fallback;
@@ -124,6 +134,13 @@ export default function DragAndDrop() {
     "team-3": "Team 3",
   };
 
+  // Default team notes
+  const defaultTeamNotes = {
+    "team-1": "",
+    "team-2": "",
+    "team-3": "",
+  };
+
   // Initialize with default values first to avoid hydration mismatch
   const [itemContainers, setItemContainers] =
     useState<Record<string, UniqueIdentifier | null>>(defaultContainers);
@@ -135,6 +152,10 @@ export default function DragAndDrop() {
   // Track the team names
   const [teamNames, setTeamNames] =
     useState<Record<string, string>>(defaultTeamNames);
+
+  // Track team rotation notes
+  const [teamNotes, setTeamNotes] =
+    useState<Record<string, string>>(defaultTeamNotes);
 
   // Once component has mounted on client side, load values from localStorage
   const [isClient, setIsClient] = useState(false);
@@ -157,10 +178,15 @@ export default function DragAndDrop() {
         STORAGE_KEY_TEAM_NAMES,
         defaultTeamNames
       );
+      const storedTeamNotes = getStoredData(
+        STORAGE_KEY_TEAM_NOTES,
+        defaultTeamNotes
+      );
 
       setItemContainers(storedContainers);
       setSpecialSlotSelections(storedSpecialSlots);
       setTeamNames(storedTeamNames);
+      setTeamNotes(storedTeamNotes);
     } catch (error) {
       console.error("Error loading data from localStorage:", error);
     }
@@ -203,6 +229,24 @@ export default function DragAndDrop() {
 
         // Save to localStorage
         saveToLocalStorage(STORAGE_KEY_TEAM_NAMES, newState);
+
+        return newState;
+      });
+    },
+    [saveToLocalStorage]
+  );
+
+  // Handle team notes changes
+  const handleTeamNotesChange = React.useCallback(
+    (teamId: string, notes: string) => {
+      setTeamNotes((prev) => {
+        const newState = {
+          ...prev,
+          [teamId]: notes,
+        };
+
+        // Save to localStorage
+        saveToLocalStorage(STORAGE_KEY_TEAM_NOTES, newState);
 
         return newState;
       });
@@ -278,6 +322,15 @@ export default function DragAndDrop() {
     };
     setTeamNames(defaultTeamNames);
     saveToLocalStorage(STORAGE_KEY_TEAM_NAMES, defaultTeamNames);
+
+    // Reset team notes to defaults
+    const defaultTeamNotes = {
+      "team-1": "",
+      "team-2": "",
+      "team-3": "",
+    };
+    setTeamNotes(defaultTeamNotes);
+    saveToLocalStorage(STORAGE_KEY_TEAM_NOTES, defaultTeamNotes);
   };
 
   // Get all items assigned to a specific container
@@ -310,9 +363,14 @@ export default function DragAndDrop() {
     (containers: number[], teamId: string, specialSlotId: string) => {
       const specialSlotDoll = getSpecialSlotDoll(specialSlotId);
       const teamName = teamNames[teamId];
+      const teamNote = teamNotes[teamId] || "";
+
+      // Determine if the accordion should be open by default
+      const hasNotes = teamNote.trim().length > 0;
+      const defaultOpenValue = hasNotes ? teamId : undefined;
 
       return (
-        <div className="mb-3">
+        <div className="mb-6">
           <div className="flex items-center gap-2 mb-2">
             <TeamNameInput
               teamId={teamId}
@@ -350,14 +408,14 @@ export default function DragAndDrop() {
             })}
 
             {/* Special slot with shadcn select dropdown */}
-            <div className="p-2 border-2 rounded min-h-20 w-[180px] bg-warning">
+            <div className="mt-8 min-[636px]:mt-0 p-2 border border-dashed min-h-20 w-[180px] relative">
               <Select
                 value={specialSlotSelections[specialSlotId] || ""}
                 onValueChange={(value) =>
                   handleSpecialSlotChange(specialSlotId, value || null)
                 }
               >
-                <SelectTrigger className="w-full mb-2">
+                <SelectTrigger className="w-full mb-2 absolute top-[-44px] left-0">
                   <SelectValue placeholder="Pick a support" />
                 </SelectTrigger>
                 <SelectContent>
@@ -373,20 +431,47 @@ export default function DragAndDrop() {
               </Select>
 
               {specialSlotDoll && (
-                <div className="flex justify-center mt-2">
+                <div className="flex justify-center">
                   <DollCard doll={specialSlotDoll} showName={false} />
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Rotation Notes Accordion */}
+          <div className="mt-4">
+            <Accordion
+              type="single"
+              collapsible
+              defaultValue={defaultOpenValue}
+            >
+              <AccordionItem value={teamId}>
+                <AccordionTrigger className="text-sm">
+                  Rotation Notes
+                </AccordionTrigger>
+                <AccordionContent>
+                  <Textarea
+                    placeholder="Add your rotation strategy and notes here..."
+                    className="min-h-[100px]"
+                    value={teamNote}
+                    onChange={(e) =>
+                      handleTeamNotesChange(teamId, e.target.value)
+                    }
+                  />
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
         </div>
       );
     },
     [
       teamNames,
+      teamNotes,
       specialSlotSelections,
       itemContainers,
       handleTeamNameChange,
+      handleTeamNotesChange,
       getSpecialSlotDoll,
       getContainerItems,
     ]
