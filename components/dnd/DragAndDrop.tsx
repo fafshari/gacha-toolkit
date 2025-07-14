@@ -3,24 +3,70 @@ import React, { useState, memo, useCallback } from "react";
 import { DndContext, DragEndEvent, UniqueIdentifier } from "@dnd-kit/core";
 import { Draggable } from "./Draggable";
 import { Droppable } from "./Droppable";
-import { DollCard } from "@/components/DollCard";
-import { EXILLIUM_DOLLS, Doll, DOLLS_BY_ID } from "@/lib/constants";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+
+// Generic DnD context props
+/**
+ * Base interface for draggable items.
+ * All draggable items must have an id property and allow additional properties.
+ * The index signature [key: string]: unknown allows any additional properties
+ * to be added to objects of this type.
+ */
+export interface DndItem {
+  id: string;
+  [key: string]: unknown; // Index signature allowing additional properties
+}
+
+export interface TeamData {
+  id: string;
+  name: string;
+  notes: string;
+  containers: string[];
+  specialSlot: string | null;
+}
+
+export interface DndProps<T extends DndItem> {
+  // Data
+  items: T[];
+  teams: TeamData[];
+
+  // Storage keys for persistence
+  storageKeys: {
+    containers: string;
+    specialSlots: string;
+    teamNames: string;
+    teamNotes: string;
+  };
+
+  // Render functions
+  renderItem: (item: T) => React.ReactNode;
+  renderSpecialSlot?: (
+    slotId: string,
+    selectedItem: T | null,
+    onSelect: (itemId: string | null) => void,
+    allItems: T[]
+  ) => React.ReactNode;
+
+  // Optional render overrides
+  renderHeader?: () => React.ReactNode;
+  renderLegend?: () => React.ReactNode;
+  renderTeamHeader?: (
+    team: TeamData,
+    teamName: string,
+    onNameChange: (teamId: string, name: string) => void
+  ) => React.ReactNode;
+  renderTeamNotes?: (
+    team: TeamData,
+    notes: string,
+    onNotesChange: (teamId: string, notes: string) => void
+  ) => React.ReactNode;
+
+  // Initial values
+  defaultContainerValue?: UniqueIdentifier | null;
+
+  // Additional container options
+  droppableContainerStyle?: React.CSSProperties;
+  droppableContainerClassName?: string;
+}
 
 // High-performance input component with local state that only syncs on blur
 const TeamNameInput = memo(
@@ -67,12 +113,12 @@ const TeamNameInput = memo(
     );
 
     return (
-      <Input
+      <input
         value={localValue}
         onChange={handleChange}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
-        className="text-lg font-semibold h-8 max-w-[200px]"
+        className="text-lg font-semibold h-8 max-w-[200px] px-2 border rounded"
       />
     );
   },
@@ -122,9 +168,9 @@ const TeamNotesTextarea = memo(
     }, [teamId, localValue, initialValue, onSave]);
 
     return (
-      <Textarea
+      <textarea
         placeholder="Add your rotation strategy and notes here..."
-        className="min-h-[100px] font-mono"
+        className="min-h-[100px] font-mono w-full p-2 border rounded"
         value={localValue}
         onChange={handleChange}
         onBlur={handleBlur}
@@ -142,12 +188,6 @@ const TeamNotesTextarea = memo(
 
 TeamNotesTextarea.displayName = "TeamNotesTextarea";
 
-// Storage keys
-const STORAGE_KEY_CONTAINERS = "exillium-dnd-containers";
-const STORAGE_KEY_SPECIAL_SLOTS = "exillium-dnd-special-slots";
-const STORAGE_KEY_TEAM_NAMES = "exillium-dnd-team-names";
-const STORAGE_KEY_TEAM_NOTES = "exillium-dnd-team-notes"; // New key for team notes
-
 // Helper function to get stored data with fallback
 const getStoredData = <T,>(key: string, fallback: T): T => {
   // Ensure we're in browser environment and not in SSR
@@ -162,45 +202,61 @@ const getStoredData = <T,>(key: string, fallback: T): T => {
   }
 };
 
-export default function DragAndDrop() {
-  // Define three separate sets of containers
-  const gridOne = [1, 2, 3, 4];
-  const gridTwo = [6, 7, 8, 9];
-  const gridThree = [11, 12, 13, 14];
-
-  // Create default values
-  const defaultContainers = EXILLIUM_DOLLS.reduce(
-    (acc, doll) => ({
+export default function GenericDragAndDrop<T extends DndItem>({
+  items,
+  teams,
+  storageKeys,
+  renderItem,
+  renderSpecialSlot,
+  renderHeader,
+  renderLegend,
+  renderTeamHeader,
+  renderTeamNotes,
+  defaultContainerValue = null,
+  droppableContainerStyle,
+  droppableContainerClassName,
+}: DndProps<T>) {
+  // Create default values for item containers
+  const defaultContainers = items.reduce(
+    (acc, item) => ({
       ...acc,
-      [doll.id]: null,
+      [item.id]: defaultContainerValue,
     }),
     {}
   );
 
-  const defaultSpecialSlots = {
-    "special-1": null,
-    "special-2": null,
-    "special-3": null,
-  };
+  // Default special slots based on team data
+  const defaultSpecialSlots = teams.reduce(
+    (acc, team) => ({
+      ...acc,
+      [`special-${team.id}`]: null,
+    }),
+    {}
+  );
 
-  const defaultTeamNames = {
-    "team-1": "Team 1",
-    "team-2": "Team 2",
-    "team-3": "Team 3",
-  };
+  // Default team names
+  const defaultTeamNames = teams.reduce(
+    (acc, team) => ({
+      ...acc,
+      [team.id]: team.name,
+    }),
+    {}
+  );
 
   // Default team notes
-  const defaultTeamNotes = {
-    "team-1": "",
-    "team-2": "",
-    "team-3": "",
-  };
+  const defaultTeamNotes = teams.reduce(
+    (acc, team) => ({
+      ...acc,
+      [team.id]: team.notes,
+    }),
+    {}
+  );
 
   // Initialize with default values first to avoid hydration mismatch
   const [itemContainers, setItemContainers] =
     useState<Record<string, UniqueIdentifier | null>>(defaultContainers);
 
-  // Track which dolls are selected for the special slots
+  // Track which items are selected for the special slots
   const [specialSlotSelections, setSpecialSlotSelections] =
     useState<Record<string, string | null>>(defaultSpecialSlots);
 
@@ -222,19 +278,19 @@ export default function DragAndDrop() {
     // Load saved data from localStorage
     try {
       const storedContainers = getStoredData(
-        STORAGE_KEY_CONTAINERS,
+        storageKeys.containers,
         defaultContainers
       );
       const storedSpecialSlots = getStoredData(
-        STORAGE_KEY_SPECIAL_SLOTS,
+        storageKeys.specialSlots,
         defaultSpecialSlots
       );
       const storedTeamNames = getStoredData(
-        STORAGE_KEY_TEAM_NAMES,
+        storageKeys.teamNames,
         defaultTeamNames
       );
       const storedTeamNotes = getStoredData(
-        STORAGE_KEY_TEAM_NOTES,
+        storageKeys.teamNotes,
         defaultTeamNotes
       );
 
@@ -259,15 +315,15 @@ export default function DragAndDrop() {
   }, []);
 
   // Handle change in dropdown selection for special slots
-  const handleSpecialSlotChange = (slotId: string, dollId: string | null) => {
+  const handleSpecialSlotChange = (slotId: string, itemId: string | null) => {
     setSpecialSlotSelections((prev) => {
       const newState = {
         ...prev,
-        [slotId]: dollId,
+        [slotId]: itemId,
       };
 
       // Save to localStorage
-      saveToLocalStorage(STORAGE_KEY_SPECIAL_SLOTS, newState);
+      saveToLocalStorage(storageKeys.specialSlots, newState);
 
       return newState;
     });
@@ -283,12 +339,12 @@ export default function DragAndDrop() {
         };
 
         // Save to localStorage
-        saveToLocalStorage(STORAGE_KEY_TEAM_NAMES, newState);
+        saveToLocalStorage(storageKeys.teamNames, newState);
 
         return newState;
       });
     },
-    [saveToLocalStorage]
+    [saveToLocalStorage, storageKeys.teamNames]
   );
 
   // Handle team notes changes
@@ -301,12 +357,12 @@ export default function DragAndDrop() {
         };
 
         // Save to localStorage
-        saveToLocalStorage(STORAGE_KEY_TEAM_NOTES, newState);
+        saveToLocalStorage(storageKeys.teamNotes, newState);
 
         return newState;
       });
     },
-    [saveToLocalStorage]
+    [saveToLocalStorage, storageKeys.teamNotes]
   );
 
   function handleDragEnd(event: DragEndEvent) {
@@ -321,7 +377,7 @@ export default function DragAndDrop() {
         };
 
         // Save to localStorage
-        saveToLocalStorage(STORAGE_KEY_CONTAINERS, newState);
+        saveToLocalStorage(storageKeys.containers, newState);
 
         return newState;
       });
@@ -341,7 +397,7 @@ export default function DragAndDrop() {
       };
 
       // Save to localStorage
-      saveToLocalStorage(STORAGE_KEY_CONTAINERS, newState);
+      saveToLocalStorage(storageKeys.containers, newState);
 
       return newState;
     });
@@ -350,92 +406,74 @@ export default function DragAndDrop() {
   // Function to reset all items to unassigned state
   const handleReset = () => {
     // Reset item containers
-    const defaultContainers = EXILLIUM_DOLLS.reduce(
-      (acc, doll) => ({
-        ...acc,
-        [doll.id]: null,
-      }),
-      {}
-    );
     setItemContainers(defaultContainers);
-    saveToLocalStorage(STORAGE_KEY_CONTAINERS, defaultContainers);
+    saveToLocalStorage(storageKeys.containers, defaultContainers);
 
     // Reset special slot selections
-    const defaultSpecialSlots = {
-      "special-1": null,
-      "special-2": null,
-      "special-3": null,
-    };
     setSpecialSlotSelections(defaultSpecialSlots);
-    saveToLocalStorage(STORAGE_KEY_SPECIAL_SLOTS, defaultSpecialSlots);
+    saveToLocalStorage(storageKeys.specialSlots, defaultSpecialSlots);
 
     // Reset team names to defaults
-    const defaultTeamNames = {
-      "team-1": "Team 1",
-      "team-2": "Team 2",
-      "team-3": "Team 3",
-    };
     setTeamNames(defaultTeamNames);
-    saveToLocalStorage(STORAGE_KEY_TEAM_NAMES, defaultTeamNames);
+    saveToLocalStorage(storageKeys.teamNames, defaultTeamNames);
 
     // Reset team notes to defaults
-    const defaultTeamNotes = {
-      "team-1": "",
-      "team-2": "",
-      "team-3": "",
-    };
     setTeamNotes(defaultTeamNotes);
-    saveToLocalStorage(STORAGE_KEY_TEAM_NOTES, defaultTeamNotes);
+    saveToLocalStorage(storageKeys.teamNotes, defaultTeamNotes);
   };
 
   // Get all items assigned to a specific container
   const getContainerItems = React.useCallback(
-    (containerId: string): Doll[] => {
-      return EXILLIUM_DOLLS.filter(
-        (doll) => itemContainers[doll.id] === containerId
-      );
+    (containerId: string): T[] => {
+      return items.filter((item) => itemContainers[item.id] === containerId);
     },
-    [itemContainers]
+    [items, itemContainers]
   );
 
   // Get all unassigned items
-  const getUnassignedItems = React.useCallback((): Doll[] => {
-    // Return all dolls that are not in a regular container
-    return EXILLIUM_DOLLS.filter((doll) => itemContainers[doll.id] === null);
-  }, [itemContainers]);
+  const getUnassignedItems = React.useCallback((): T[] => {
+    // Return all items that are not in a regular container
+    return items.filter((item) => itemContainers[item.id] === null);
+  }, [items, itemContainers]);
 
-  // Get the doll assigned to a special slot
-  const getSpecialSlotDoll = React.useCallback(
-    (slotId: string): Doll | null => {
-      const dollId = specialSlotSelections[slotId];
-      return dollId && dollId !== "none" ? DOLLS_BY_ID[dollId] : null;
+  // Get the item assigned to a special slot
+  const getSpecialSlotItem = React.useCallback(
+    (slotId: string): T | null => {
+      const itemId = specialSlotSelections[slotId];
+      if (!itemId) return null;
+
+      const selectedItem = items.find((item) => item.id === itemId);
+      return selectedItem || null;
     },
-    [specialSlotSelections]
+    [specialSlotSelections, items]
   );
 
-  // Helper function to render a grid of droppable containers
-  const renderGrid = React.useCallback(
-    (containers: number[], teamId: string, specialSlotId: string) => {
-      const specialSlotDoll = getSpecialSlotDoll(specialSlotId);
-      const teamName = teamNames[teamId];
-      const teamNote = teamNotes[teamId] || "";
-
-      // Determine if the accordion should be open by default
-      const hasNotes = teamNote.trim().length > 0;
-      const defaultOpenValue = hasNotes ? teamId : undefined;
+  // Helper function to render a grid of droppable containers for a team
+  const renderTeam = React.useCallback(
+    (team: TeamData) => {
+      const specialSlotId = `special-${team.id}`;
+      const specialSlotItem = getSpecialSlotItem(specialSlotId);
+      const teamName = teamNames[team.id];
+      const teamNote = teamNotes[team.id] || "";
 
       return (
         <div className="mb-6">
+          {/* Team header with name */}
           <div className="flex items-center gap-2 mb-2">
-            <TeamNameInput
-              teamId={teamId}
-              initialValue={teamName}
-              onSave={handleTeamNameChange}
-            />
+            {renderTeamHeader ? (
+              renderTeamHeader(team, teamName, handleTeamNameChange)
+            ) : (
+              <TeamNameInput
+                teamId={team.id}
+                initialValue={teamName}
+                onSave={handleTeamNameChange}
+              />
+            )}
           </div>
+
+          {/* Containers for this team */}
           <div className="flex flex-wrap gap-4">
-            {containers.map((container) => {
-              const containerId = `droppable-${container}`;
+            {team.containers.map((containerId) => {
               const containerItems = getContainerItems(containerId);
               const hasItems = containerItems.length > 0;
 
@@ -445,12 +483,18 @@ export default function DragAndDrop() {
                   id={containerId}
                   hasItems={hasItems}
                 >
-                  <div className="p-2 border border-dashed rounded min-h-20 w-[82px]">
+                  <div
+                    className={
+                      droppableContainerClassName ||
+                      "p-2 border border-dashed rounded min-h-20 w-[82px]"
+                    }
+                    style={droppableContainerStyle}
+                  >
                     {hasItems ? (
                       <div className="flex flex-wrap gap-2">
-                        {containerItems.map((doll) => (
-                          <Draggable key={doll.id} id={doll.id}>
-                            <DollCard doll={doll} />
+                        {containerItems.map((item) => (
+                          <Draggable key={item.id} id={item.id}>
+                            {renderItem(item)}
                           </Draggable>
                         ))}
                       </div>
@@ -462,57 +506,33 @@ export default function DragAndDrop() {
               );
             })}
 
-            {/* Special slot with shadcn select dropdown */}
-            <div className="mt-8 min-[636px]:mt-0 p-2 border border-dashed min-h-20 w-[180px] relative">
-              <Select
-                value={specialSlotSelections[specialSlotId] || ""}
-                onValueChange={(value) =>
-                  handleSpecialSlotChange(specialSlotId, value || null)
-                }
-              >
-                <SelectTrigger className="w-full mb-2 absolute top-[-44px] left-0">
-                  <SelectValue placeholder="Pick a support" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="none">None</SelectItem>
-                    {EXILLIUM_DOLLS.map((doll) => (
-                      <SelectItem key={doll.id} value={doll.id}>
-                        {doll.name}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-
-              {specialSlotDoll && (
-                <div className="flex justify-center">
-                  <DollCard doll={specialSlotDoll} showName={false} />
-                </div>
-              )}
-            </div>
+            {/* Special slot */}
+            {renderSpecialSlot && (
+              <div className="mt-8 min-[636px]:mt-0 p-2 border border-dashed min-h-20 w-[180px] relative">
+                {renderSpecialSlot(
+                  specialSlotId,
+                  specialSlotItem,
+                  (itemId) => handleSpecialSlotChange(specialSlotId, itemId),
+                  items
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Rotation Notes Accordion */}
+          {/* Team Notes */}
           <div className="mt-4">
-            <Accordion
-              type="single"
-              collapsible
-              defaultValue={defaultOpenValue}
-            >
-              <AccordionItem value={teamId}>
-                <AccordionTrigger className="text-sm">
-                  Rotation Notes
-                </AccordionTrigger>
-                <AccordionContent>
-                  <TeamNotesTextarea
-                    teamId={teamId}
-                    initialValue={teamNote}
-                    onSave={handleTeamNotesChange}
-                  />
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+            {renderTeamNotes ? (
+              renderTeamNotes(team, teamNote, handleTeamNotesChange)
+            ) : (
+              <div className="border p-2 rounded">
+                <div className="text-sm font-medium mb-2">Rotation Notes</div>
+                <TeamNotesTextarea
+                  teamId={team.id}
+                  initialValue={teamNote}
+                  onSave={handleTeamNotesChange}
+                />
+              </div>
+            )}
           </div>
         </div>
       );
@@ -520,12 +540,17 @@ export default function DragAndDrop() {
     [
       teamNames,
       teamNotes,
-      specialSlotSelections,
-      itemContainers,
       handleTeamNameChange,
       handleTeamNotesChange,
-      getSpecialSlotDoll,
+      getSpecialSlotItem,
       getContainerItems,
+      renderItem,
+      renderSpecialSlot,
+      renderTeamHeader,
+      renderTeamNotes,
+      droppableContainerClassName,
+      droppableContainerStyle,
+      items,
     ]
   );
 
@@ -534,7 +559,7 @@ export default function DragAndDrop() {
     return (
       <div className="flex flex-col gap-4">
         <div className="flex justify-between items-center mb-2">
-          <h2 className="text-xl font-bold">Exillium Dolls Drag & Drop</h2>
+          <h2 className="text-xl font-bold">Drag & Drop</h2>
         </div>
         <div className="p-4 border border-gray rounded mb-4 text-center">
           Loading...
@@ -548,86 +573,45 @@ export default function DragAndDrop() {
       <div className="flex flex-col gap-4">
         {/* Header with reset button */}
         <div className="flex justify-between items-center mb-2">
-          <h2 className="text-xl font-bold">Exillium Dolls Drag & Drop</h2>
-          <button
-            onClick={handleReset}
-            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded transition-colors"
-          >
-            Reset All Items
-          </button>
+          {renderHeader ? (
+            renderHeader()
+          ) : (
+            <>
+              <h2 className="text-xl font-bold">Drag & Drop</h2>
+              <button
+                onClick={handleReset}
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded transition-colors"
+              >
+                Reset All Items
+              </button>
+            </>
+          )}
         </div>
 
-        {/* Legend section to explain the visual indicators */}
-        <div className="p-4 border border-gray rounded mb-4">
-          <h3 className="font-bold mb-2">Legend</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Border colors */}
-            <div>
-              <h4 className="text-sm font-semibold mb-2">Border Colors:</h4>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center">
-                  <div className="w-8 h-8 ring-2 ring-blue-500 rounded-md mr-2"></div>
-                  <span>Dispel ability</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-8 h-8 ring-2 ring-green-500 rounded-md mr-2"></div>
-                  <span>Cleanse ability</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-8 h-8 ring-2 ring-yellow-400 rounded-md mr-2"></div>
-                  <span>Both Dispel and Cleanse abilities</span>
-                </div>
-              </div>
-            </div>
-            {/* Dot indicators */}
-            <div>
-              <h4 className="text-sm font-semibold mb-2">Dot Indicators:</h4>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center">
-                  <div className="flex mr-2">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  </div>
-                  <span>Dispel (Single Target/Self)</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="flex mr-2">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full ring-1 ring-white"></div>
-                  </div>
-                  <span>Dispel (AoE)</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="flex mr-2">
-                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  </div>
-                  <span>Cleanse (Single Target/Self)</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="flex mr-2">
-                    <div className="w-3 h-3 bg-green-500 rounded-full ring-1 ring-white"></div>
-                  </div>
-                  <span>Cleanse (AoE)</span>
-                </div>
-              </div>
-            </div>
+        {/* Legend section */}
+        {renderLegend && (
+          <div className="p-4 border border-gray rounded mb-4">
+            {renderLegend()}
           </div>
-        </div>
+        )}
+
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Unassigned items area */}
-          <div className="lg:basis-2/5 p-4 border border-dashed  border-gray rounded mb-4">
-            <h3 className="font-bold mb-2">Unassigned Dolls</h3>
+          <div className="lg:basis-2/5 p-4 border border-dashed border-gray rounded mb-4">
+            <h3 className="font-bold mb-2">Unassigned Items</h3>
             <div className="flex flex-wrap gap-4">
-              {getUnassignedItems().map((doll) => (
-                <Draggable key={doll.id} id={doll.id}>
-                  <DollCard doll={doll} />
+              {getUnassignedItems().map((item) => (
+                <Draggable key={item.id} id={item.id}>
+                  {renderItem(item)}
                 </Draggable>
               ))}
             </div>
           </div>
           <div>
-            {/* The three separate grids with special slots */}
-            {renderGrid(gridOne, "team-1", "special-1")}
-            {renderGrid(gridTwo, "team-2", "special-2")}
-            {renderGrid(gridThree, "team-3", "special-3")}
+            {/* Render each team */}
+            {teams.map((team) => (
+              <div key={team.id}>{renderTeam(team)}</div>
+            ))}
           </div>
         </div>
       </div>

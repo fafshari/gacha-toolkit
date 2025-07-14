@@ -1,4 +1,4 @@
-import DragAndDrop from "@/components/dnd/DragAndDrop";
+import ExiliumDragAndDrop from "./components/ExiliumDndAdapter";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
       "Interactive tool for planning Gunsmoke Exilium teams with drag and drop functionality",
     images: [
       {
-        url: "/exillium/gunsmoke.png", // Using one of the doll images as a preview
+        url: "/exilium/gunsmoke.png", // Using one of the doll images as a preview
         width: 1461,
         height: 783,
         alt: "Gunsmoke Exilium Team Planner",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     title: "Gunsmoke Exilium Team Planner",
     description:
       "Plan your perfect Gunsmoke Exilium team composition with our interactive tool",
-    images: ["/exillium/gunsmoke.png"],
+    images: ["/exilium/gunsmoke.png"],
   },
 };
 
@@ -44,7 +44,7 @@ export default function ExiliumHomePage() {
           Drag doll names into slots to assign positions!
         </p>
 
-        <DragAndDrop />
+        <ExiliumDragAndDrop />
       </main>
     </div>
   );

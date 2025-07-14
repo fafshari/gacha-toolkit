@@ -16,11 +16,11 @@ export interface Doll {
   };
 }
 
-export const EXILLIUM_DOLLS: Doll[] = [
+export const EXILIUM_DOLLS: Doll[] = [
   {
     id: "centaureissi",
     name: "Centaureissi",
-    image: "/exillium/dolls/centaureissi.png",
+    image: "/exilium/dolls/centaureissi.png",
     dispel: true,
     cleanse: true,
     abilities: {
@@ -43,7 +43,7 @@ export const EXILLIUM_DOLLS: Doll[] = [
   {
     id: "cheeta",
     name: "Cheeta",
-    image: "/exillium/dolls/cheeta.png",
+    image: "/exilium/dolls/cheeta.png",
     dispel: false,
     cleanse: true,
     abilities: {
@@ -56,7 +56,7 @@ export const EXILLIUM_DOLLS: Doll[] = [
   {
     id: "colphne",
     name: "Colphne",
-    image: "/exillium/dolls/colphne.png",
+    image: "/exilium/dolls/colphne.png",
     dispel: false,
     cleanse: true,
     abilities: {
@@ -73,7 +73,7 @@ export const EXILLIUM_DOLLS: Doll[] = [
   {
     id: "daiyan",
     name: "Daiyan",
-    image: "/exillium/dolls/daiyan.png",
+    image: "/exilium/dolls/daiyan.png",
     dispel: true,
     cleanse: false,
     abilities: {
@@ -85,7 +85,7 @@ export const EXILLIUM_DOLLS: Doll[] = [
   {
     id: "dushevnaya",
     name: "Dushevnaya",
-    image: "/exillium/dolls/dushevnaya.png",
+    image: "/exilium/dolls/dushevnaya.png",
     dispel: true,
     cleanse: true,
     abilities: {
@@ -105,35 +105,35 @@ export const EXILLIUM_DOLLS: Doll[] = [
   {
     id: "faye",
     name: "Faye",
-    image: "/exillium/dolls/faye.png",
+    image: "/exilium/dolls/faye.png",
     dispel: false,
     cleanse: false
   },
   {
     id: "groza",
     name: "Groza",
-    image: "/exillium/dolls/groza.png",
+    image: "/exilium/dolls/groza.png",
     dispel: false,
     cleanse: false
   },
   {
     id: "klukai",
     name: "Klukai",
-    image: "/exillium/dolls/klukai.png",
+    image: "/exilium/dolls/klukai.png",
     dispel: false,
     cleanse: false
   },
   {
     id: "krolik",
     name: "Krolik",
-    image: "/exillium/dolls/krolik.png",
+    image: "/exilium/dolls/krolik.png",
     dispel: false,
     cleanse: false
   },
   {
     id: "ksenia",
     name: "Ksenia",
-    image: "/exillium/dolls/ksenia.png",
+    image: "/exilium/dolls/ksenia.png",
     dispel: true,
     cleanse: true,
     abilities: {
@@ -149,28 +149,28 @@ export const EXILLIUM_DOLLS: Doll[] = [
   {
     id: "littara",
     name: "Littara",
-    image: "/exillium/dolls/littara.png",
+    image: "/exilium/dolls/littara.png",
     dispel: false,
     cleanse: false
   },
   {
     id: "lotta",
     name: "Lotta",
-    image: "/exillium/dolls/lotta.png",
+    image: "/exilium/dolls/lotta.png",
     dispel: false,
     cleanse: false
   },
   {
     id: "makiatto",
     name: "Makiatto",
-    image: "/exillium/dolls/makiatto.png",
+    image: "/exilium/dolls/makiatto.png",
     dispel: false,
     cleanse: false
   },
   {
     id: "mechty",
     name: "Mechty",
-    image: "/exillium/dolls/mechty.png",
+    image: "/exilium/dolls/mechty.png",
     dispel: true,
     cleanse: true,
     abilities: {
@@ -190,28 +190,28 @@ export const EXILLIUM_DOLLS: Doll[] = [
   {
     id: "mosin",
     name: "Mosin",
-    image: "/exillium/dolls/mosin.png",
+    image: "/exilium/dolls/mosin.png",
     dispel: false,
     cleanse: false
   },
   {
     id: "nagant",
     name: "Nagant",
-    image: "/exillium/dolls/nagant.png",
+    image: "/exilium/dolls/nagant.png",
     dispel: false,
     cleanse: false
   },
   {
     id: "nemesis",
     name: "Nemesis",
-    image: "/exillium/dolls/nemesis.png",
+    image: "/exilium/dolls/nemesis.png",
     dispel: false,
     cleanse: false
   },
   {
     id: "papasha",
     name: "Papasha",
-    image: "/exillium/dolls/papasha.png",
+    image: "/exilium/dolls/papasha.png",
     dispel: false,
     cleanse: true,
     abilities: {
@@ -224,7 +224,7 @@ export const EXILLIUM_DOLLS: Doll[] = [
   {
     id: "peri",
     name: "Peri",
-    image: "/exillium/dolls/peri.png",
+    image: "/exilium/dolls/peri.png",
     dispel: true,
     cleanse: true,
     abilities: {
@@ -240,7 +240,7 @@ export const EXILLIUM_DOLLS: Doll[] = [
   {
     id: "peritya",
     name: "Peritya",
-    image: "/exillium/dolls/peritya.png",
+    image: "/exilium/dolls/peritya.png",
     dispel: true,
     cleanse: false,
     abilities: {
@@ -252,7 +252,7 @@ export const EXILLIUM_DOLLS: Doll[] = [
   {
     id: "qiongjiu",
     name: "Qiongjiu",
-    image: "/exillium/dolls/qiongjiu.png",
+    image: "/exilium/dolls/qiongjiu.png",
     dispel: true,
     cleanse: false,
     abilities: {
@@ -264,21 +264,21 @@ export const EXILLIUM_DOLLS: Doll[] = [
   {
     id: "sabrina",
     name: "Sabrina",
-    image: "/exillium/dolls/sabrina.png",
+    image: "/exilium/dolls/sabrina.png",
     dispel: false,
     cleanse: false
   },
   {
     id: "sharkry",
     name: "Sharkry",
-    image: "/exillium/dolls/sharkry.png",
+    image: "/exilium/dolls/sharkry.png",
     dispel: false,
     cleanse: false
   },
   {
     id: "springfield",
     name: "Springfield",
-    image: "/exillium/dolls/springfield.png",
+    image: "/exilium/dolls/springfield.png",
     dispel: true,
     cleanse: true,
     abilities: {
@@ -294,7 +294,7 @@ export const EXILLIUM_DOLLS: Doll[] = [
   {
     id: "suomi",
     name: "Suomi",
-    image: "/exillium/dolls/suomi.png",
+    image: "/exilium/dolls/suomi.png",
     dispel: false,
     cleanse: true,
     abilities: {
@@ -307,7 +307,7 @@ export const EXILLIUM_DOLLS: Doll[] = [
   {
     id: "tololo",
     name: "Tololo",
-    image: "/exillium/dolls/tololo.png",
+    image: "/exilium/dolls/tololo.png",
     dispel: true,
     cleanse: false,
     abilities: {
@@ -319,14 +319,14 @@ export const EXILLIUM_DOLLS: Doll[] = [
   {
     id: "ullrid",
     name: "Ullrid",
-    image: "/exillium/dolls/ullrid.png",
+    image: "/exilium/dolls/ullrid.png",
     dispel: false,
     cleanse: false
   },
   {
     id: "vector",
     name: "Vector",
-    image: "/exillium/dolls/vector.png",
+    image: "/exilium/dolls/vector.png",
     dispel: true,
     cleanse: false, // true once I have V2
     abilities: {
@@ -342,7 +342,7 @@ export const EXILLIUM_DOLLS: Doll[] = [
   {
     id: "vepley",
     name: "Vepley",
-    image: "/exillium/dolls/vepley.png",
+    image: "/exilium/dolls/vepley.png",
     dispel: true,
     cleanse: false,
     abilities: {
@@ -354,7 +354,7 @@ export const EXILLIUM_DOLLS: Doll[] = [
   {
     id: "yoohee",
     name: "Yoohee",
-    image: "/exillium/dolls/yoohee.png",
+    image: "/exilium/dolls/yoohee.png",
     dispel: true,
     cleanse: true,
     abilities: {
@@ -373,7 +373,7 @@ export const EXILLIUM_DOLLS: Doll[] = [
   {
     id: "zhaohui",
     name: "Zhaohui",
-    image: "/exillium/dolls/zhaohui.png",
+    image: "/exilium/dolls/zhaohui.png",
     dispel: true,
     cleanse: false,
     abilities: {
@@ -385,7 +385,7 @@ export const EXILLIUM_DOLLS: Doll[] = [
 ];
 
 // Export dolls by ID for easy access
-export const DOLLS_BY_ID: Record<string, Doll> = EXILLIUM_DOLLS.reduce(
+export const DOLLS_BY_ID: Record<string, Doll> = EXILIUM_DOLLS.reduce(
   (acc, doll) => ({
     ...acc,
     [doll.id]: doll
