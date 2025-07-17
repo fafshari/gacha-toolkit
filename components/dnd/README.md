@@ -111,3 +111,13 @@ To create your own implementation:
 5. Pass everything to the `GenericDragAndDrop` component
 
 You can customize almost every aspect of the UI while leveraging the core drag-and-drop functionality.
+
+## Key Features
+
+### State Persistence
+
+The component automatically saves and loads state using localStorage, allowing users to maintain their configurations between sessions.
+
+### Auto-detection of New Items
+
+When new items are added to the `items` array, they will automatically appear in the unassigned section even if users have saved state. This ensures that newly added items are always visible without requiring users to reset their configuration.

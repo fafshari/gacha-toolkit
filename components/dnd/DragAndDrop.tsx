@@ -294,7 +294,10 @@ export default function GenericDragAndDrop<T extends DndItem>({
         defaultTeamNotes
       );
 
-      setItemContainers(storedContainers);
+      // Merge the stored container state with the default state to handle new items
+      const mergedContainers = { ...defaultContainers, ...storedContainers };
+
+      setItemContainers(mergedContainers);
       setSpecialSlotSelections(storedSpecialSlots);
       setTeamNames(storedTeamNames);
       setTeamNotes(storedTeamNotes);
@@ -371,9 +374,11 @@ export default function GenericDragAndDrop<T extends DndItem>({
     if (!over) {
       // If dropped outside a droppable area, return to unassigned state
       setItemContainers((prev) => {
+        // Ensure we have an entry for every item, even if just added
         const newState = {
-          ...prev,
-          [active.id]: null,
+          ...defaultContainers, // Include defaults for any new items
+          ...prev, // Keep existing assignments
+          [active.id]: null, // Set the dragged item to null (unassigned)
         };
 
         // Save to localStorage
@@ -391,9 +396,11 @@ export default function GenericDragAndDrop<T extends DndItem>({
 
     // Regular slot handling
     setItemContainers((prev) => {
+      // Ensure we have an entry for every item, even if just added
       const newState = {
-        ...prev,
-        [active.id]: over.id,
+        ...defaultContainers, // Include defaults for any new items
+        ...prev, // Keep existing assignments
+        [active.id]: over.id, // Set the dragged item to the new container
       };
 
       // Save to localStorage

@@ -224,6 +224,10 @@ export default function ExiliumDragAndDrop() {
     };
   });
 
+  // Note: The GenericDragAndDrop component has been modified to automatically
+  // include any new dolls that were added to the EXILIUM_DOLLS array.
+  // New dolls will appear in the "Unassigned Dolls" section automatically.
+
   // Explicitly specify DollItem as the generic type parameter
   return (
     <GenericDragAndDrop<DollItem>
