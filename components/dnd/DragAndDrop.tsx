@@ -47,7 +47,7 @@ export interface DndProps<T extends DndItem> {
   ) => React.ReactNode;
 
   // Optional render overrides
-  renderHeader?: () => React.ReactNode;
+  renderHeader?: (resetHandler: () => void) => React.ReactNode;
   renderLegend?: () => React.ReactNode;
   renderTeamHeader?: (
     team: TeamData,
@@ -574,7 +574,7 @@ export default function GenericDragAndDrop<T extends DndItem>({
         {/* Header with reset button */}
         <div className="flex justify-between items-center mb-2">
           {renderHeader ? (
-            renderHeader()
+            renderHeader(handleReset)
           ) : (
             <>
               <h2 className="text-xl font-bold">Drag & Drop</h2>

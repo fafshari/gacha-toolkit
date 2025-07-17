@@ -115,10 +115,13 @@ export default function ExiliumDragAndDrop() {
   };
 
   // Render the header for the DnD component
-  const renderHeader = () => (
+  const renderHeader = (resetHandler: () => void) => (
     <>
       <h2 className="text-xl font-bold">Exilium Dolls Drag & Drop</h2>
-      <button className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded transition-colors">
+      <button
+        onClick={resetHandler}
+        className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded transition-colors"
+      >
         Reset All Items
       </button>
     </>
