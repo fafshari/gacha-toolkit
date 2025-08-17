@@ -209,6 +209,13 @@ export const EXILIUM_DOLLS: Doll[] = [
     cleanse: false
   },
   {
+    id: "nikketa",
+    name: "Nikketa",
+    image: "/exilium/dolls/nikketa.png",
+    dispel: false,
+    cleanse: false
+  },
+  {
     id: "papasha",
     name: "Papasha",
     image: "/exilium/dolls/papasha.png",
