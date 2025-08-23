@@ -37,13 +37,6 @@ export function DollCard({
 
     // Determine ring color based on abilities
     let ringColor = "";
-    if (hasDispel && hasCleanse) {
-      ringColor = "ring-yellow-400"; // Both abilities -> yellow
-    } else if (hasDispel) {
-      ringColor = "ring-blue-500"; // Dispel only -> blue
-    } else if (hasCleanse) {
-      ringColor = "ring-green-500"; // Cleanse only -> green
-    }
 
     // Determine ring thickness
     const ringThickness = "ring-2";
@@ -57,7 +50,9 @@ export function DollCard({
       dispel: {
         has: doll.dispel || false,
         // Dispel doesn't have a type property in the interface, so we infer from isAoE
-        type: isAoE ? "AoE" : "Single Target/Self",
+        type:
+          doll.abilities?.dispel?.type ||
+          (isAoE ? "AoE" : "Single Target/Self"),
         descriptions: doll.abilities?.dispel?.description || [],
       },
       cleanse: {
@@ -129,24 +124,23 @@ export function DollCard({
           {(doll.dispel || doll.cleanse) && (
             <div className="absolute top-0 right-0 flex gap-1 p-0.5">
               {doll.dispel && (
-                <div
-                  className={cn(
-                    // Base style
-                    "bg-blue-500 rounded-full w-3 h-3",
-                    // Add white ring for AoE abilities
-                    isAoE && "ring-1 ring-white"
-                  )}
-                />
+                <div className={cn("bg-blue-700 rounded-full w-4 h-4 text-xs")}>
+                  {String(doll.abilities?.dispel?.type).indexOf("AoE") >= 0
+                    ? "A"
+                    : "S"}
+                </div>
               )}
               {doll.cleanse && (
                 <div
                   className={cn(
                     // Base style
-                    "bg-green-500 rounded-full w-3 h-3",
-                    // Add white ring for AoE abilities
-                    isAoE && "ring-1 ring-white"
+                    "bg-green-700 rounded-full w-4 h-4 text-xs"
                   )}
-                />
+                >
+                  {String(doll.abilities?.cleanse?.type).indexOf("AoE") >= 0
+                    ? "A"
+                    : "S"}
+                </div>
               )}
             </div>
           )}
@@ -175,7 +169,7 @@ export function DollCard({
               {abilityDetails.dispel.has && (
                 <div className="mb-3">
                   <div className="flex items-center gap-2 mb-1">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    <div className="w-3 h-3 bg-blue-700 rounded-full"></div>
                     <h4 className="font-semibold">
                       Dispel ({abilityDetails.dispel.type})
                     </h4>
@@ -191,7 +185,7 @@ export function DollCard({
               {abilityDetails.cleanse.has && (
                 <div className="mb-2">
                   <div className="flex items-center gap-2 mb-1">
-                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <div className="w-3 h-3 bg-green-700 rounded-full"></div>
                     <h4 className="font-semibold">
                       Cleanse ({abilityDetails.cleanse.type || "Unknown"})
                     </h4>

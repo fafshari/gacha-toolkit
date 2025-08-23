@@ -8,6 +8,7 @@ export interface Doll {
   abilities?: {
     dispel?: {
       description: string[];
+      type?: "ST" | "AoE" | "Self" | "ST or AoE" | "Self & AoE";
     };
     cleanse?: {
       description: string[];
@@ -115,6 +116,19 @@ export const EXILIUM_DOLLS: Doll[] = [
     image: "/exilium/dolls/groza.png",
     dispel: false,
     cleanse: false
+  },
+  {
+    id: "jiangyu",
+    name: "Jiangyu",
+    image: "/exilium/dolls/jiangyu.png",
+    dispel: true,
+    cleanse: false,
+    abilities: {
+      dispel: {
+        description: ["S2 can dispel"],
+        type: "ST"
+      }
+    }
   },
   {
     id: "klukai",
@@ -297,7 +311,8 @@ export const EXILIUM_DOLLS: Doll[] = [
     cleanse: true,
     abilities: {
       dispel: {
-        description: ["Key 2 enables dispel on active attack"]
+        description: ["Key 2 enables dispel on active attack"],
+        type: "ST"
       },
       cleanse: {
         description: ["S3 AoE cleanse"],
