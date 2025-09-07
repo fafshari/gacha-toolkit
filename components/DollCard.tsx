@@ -30,20 +30,6 @@ export function DollCard({
         desc.toLowerCase().includes("party members")
     );
 
-  // Determine the ring color and thickness based on abilities
-  const getRingClasses = () => {
-    const hasDispel = doll.dispel;
-    const hasCleanse = doll.cleanse;
-
-    // Determine ring color based on abilities
-    let ringColor = "";
-
-    // Determine ring thickness
-    const ringThickness = "ring-2";
-
-    return ringColor ? `${ringColor} ${ringThickness}` : "";
-  };
-
   // Helper function to format ability descriptions
   const formatAbilityDetails = () => {
     const details = {
@@ -67,7 +53,6 @@ export function DollCard({
     return details;
   };
 
-  const ringClasses = getRingClasses();
   const abilityDetails = formatAbilityDetails();
   const [showTooltip, setShowTooltip] = useState(false);
 
@@ -94,10 +79,9 @@ export function DollCard({
     <div className="flex flex-col items-center w-16">
       <div className="relative" ref={cardRef}>
         <div
-          className={cn(
-            "relative w-16 h-16 flex items-center justify-center rounded-md group cursor-pointer border-0 bg-transparent p-0",
-            ringClasses
-          )}
+          className={
+            "relative w-16 h-16 flex items-center justify-center rounded-md group cursor-pointer border-0 bg-transparent p-0"
+          }
           onMouseDown={() => setShowTooltip(!showTooltip)}
         >
           <Image
