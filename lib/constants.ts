@@ -19,6 +19,32 @@ export interface Doll {
 
 export const EXILIUM_DOLLS: Doll[] = [
   {
+    id: "andoris",
+    name: "Andoris",
+    image: "/exilium/dolls/andoris.png",
+    cleanse: true,
+    dispel: false,
+    abilities: {
+      cleanse: {
+        description: ["Applying Positive Charge on allies cleanses 2 debuffs","S3 provides AoE cleanse"],
+        type: "AoE"
+      }
+    }
+  },
+  {
+    id: "belka",
+    name: "Belka",
+    image: "/exilium/dolls/belka.png",
+    dispel: true,
+    cleanse: false,
+    abilities: {
+      dispel: {
+        description: ["Key 6 enables dispel before S3"],
+        type: "ST"
+      }
+    }
+  },
+  {
     id: "centaureissi",
     name: "Centaureissi",
     image: "/exilium/dolls/centaureissi.png",
